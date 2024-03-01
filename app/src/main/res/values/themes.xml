@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.LAB2_2" parent="android:Theme.Material.Light.NoActionBar" />
+        <!-- Стиль для дефолтного текста -->
+        <style name="DefaultTextStyle">
+            <!-- Размер шрифта -->
+            <item name="android:textSize">16sp</item>
+
+            <!-- Стиль текста (например, normal, bold, italic) -->
+            <item name="android:textStyle">normal</item>
+
+            <!-- Цвет текста -->
+            <item name="android:textColor">@android:color/black</item>
+
+            <!-- Размер отступа между буквами (необязательно) -->
+            <item name="android:letterSpacing">0.0</item>
+
+            <!-- Размер отступа между строками (необязательно) -->
+            <item name="android:lineSpacingMultiplier">1.0</item>
+
+            <!-- Другие атрибуты стиля, если необходимо -->
+        </style>
+
+</resources>
