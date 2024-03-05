@@ -1,8 +1,0 @@
-<resources>
-        <string name="app_name">Compose Example</string>
-        <string name="morning_show">Утреннее шоу</string>
-        <string name="news">Новости</string>
-        <string name="sports_review">Спортивный обзор</string>
-        <string name="cooking_show">Кулинарное шоу</string>
-        <string name="movie_night">Кино по вечерам</string>
-</resources>
