@@ -1,10 +1,10 @@
 package com.example.lab2_2
 
-import android.content.Context
-import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -18,17 +18,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,63 +37,96 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import com.example.lab2_2.Makeappbar.Companion.MakeAppBar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
+import java.io.Serializable
 
 data class TVProg(
     val name: String,
     val showTime: String,
     val channelName: String,
     val hostName: String,
-    var picture: Int = R.drawable.no_picture
-)
-
-
-
+    var picture: Int = R.drawable.no_picture,
+) : Serializable
 
 class MainActivity : ComponentActivity() {
-    private val viewModel = ItemViewModel() // Модель данных нашего списка
+    private val viewModel by viewModels<ItemViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.addProgToEnd(
+            TVProg("кино", "20:00", "ТНТ", "Петр Сидоров", R.drawable.movie_night)
+        )
         setContent {
-            MainActivityUI(viewModel)
+            MainActivityContent(viewModel)
         }
     }
 }
 
 @Composable
-fun MainActivityUI(viewModel: ItemViewModel) {
-    val lazyListState = rememberLazyListState()
+fun MainActivityContent(viewModel: ItemViewModel) {
+    val lazyListState = rememberLazyListState() // Create a LazyListState
+
+    val progList by viewModel.proglistFlow.collectAsState(initial = emptyList())
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MakeInputPart(viewModel, lazyListState)
+            MakeAppBar(viewModel, lazyListState)
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
-                state = lazyListState
+                state = lazyListState // Use the lazyListState for the LazyColumn
             ) {
                 items(
-                    items = viewModel._proglistFlow.value,
+                    items = progList,
                     key = { prog -> prog.name },
                     itemContent = { prog ->
-                        ListRow(prog, onItemClick = { /* Define your onItemClick behavior here */ })
+                        ListRow(prog, onItemClick = { item ->
+                            viewModel.addProgToEnd(item)
+                        })
                     }
                 )
             }
-
         }
     }
 }
+
+
+@Composable
+fun SetContent(progList: List<TVProg>, viewModel: ItemViewModel, lazyListState: LazyListState) {
+    val updatedProgList = remember { mutableStateListOf<TVProg>() }
+
+    // Копируем список программ из ViewModel в локальный обновляемый список
+    updatedProgList.addAll(progList)
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize(),
+        state = lazyListState
+    ) {
+        items(
+            items = updatedProgList,
+            key = { prog -> prog.name },
+            itemContent = { prog ->
+                ListRow(prog, onItemClick = { item ->
+                    viewModel.addProgToEnd(item) // Добавление программы через viewModel
+                    updatedProgList.add(item) // Добавляем новую программу в локальный список
+                })
+            }
+        )
+    }
+}
+
+
+
+
 
 @Composable
 fun ListRow(item: TVProg, onItemClick: (TVProg) -> Unit) {
@@ -103,7 +134,8 @@ fun ListRow(item: TVProg, onItemClick: (TVProg) -> Unit) {
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth()
-            .border(BorderStroke(2.dp, Color.Blue)),
+            .border(BorderStroke(2.dp, Color.Blue))
+            .clickable { onItemClick(item) }, // Add clickable modifier here
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -113,7 +145,6 @@ fun ListRow(item: TVProg, onItemClick: (TVProg) -> Unit) {
                 text = "Название: ${item.name}",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
-
             )
             Text(
                 text = "Время показа: ${item.showTime}",
@@ -129,38 +160,17 @@ fun ListRow(item: TVProg, onItemClick: (TVProg) -> Unit) {
                 text = "Ведущий: ${item.hostName}",
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,
-
             )
         }
         Image(
             painter = painterResource(id = item.picture),
             contentDescription = null,
-            modifier = Modifier.size(50.dp).clickable { onItemClick(item) }
+            modifier = Modifier
+                .size(50.dp)
         )
     }
 }
 
-
-
-
-
-@Composable
-fun EasyList(){
-    LazyColumn { //объект для представления списка
-        item { // добавляем 1 элемент
-            Text(text = "First item", fontSize = 24.sp)
-        }
-        items(5) { index -> // добавляем 5 эл-ов
-            Text(text = "Item: $index", fontSize = 24.sp)
-        }
-        item { // добавляем 1 элемент
-            Text(text = "Last item", fontSize = 24.sp)
-        }
-    }
-}
-@Composable
-fun MyApplicationComposeTheme(content: @Composable () -> Unit) {
-}
 
 class ItemViewModel : ViewModel() {
     private var proglist = mutableStateListOf(
@@ -177,38 +187,26 @@ class ItemViewModel : ViewModel() {
     val proglistFlow: StateFlow<List<TVProg>> get() = _proglistFlow
     fun clearList(){ //метод для очистки списка, понадобится в лаб.раб.№5
         proglist.clear()
+        _proglistFlow.value = proglist // Обновляем StateFlow после очистки списка
+        Log.d("ItemViewModel", "Список программ очищен")
     }
-    fun addProgToHead(lang: TVProg) { //метод для добавления нового языка в начало списка
-        proglist.add(0, lang)
+
+    fun addProgToHead(TVProg: TVProg) {
+        proglist.add(0, TVProg)
+        _proglistFlow.value = proglist // Обновляем StateFlow после добавления программы в начало списка
+        Log.d("ItemViewModel", "Новая программа добавлена в начало списка: $TVProg")
     }
-    fun addProgToEnd(lang: TVProg) { //метод для добавления нового языка в конец списка
-        21
-        proglist.add( lang)
+
+    fun addProgToEnd(tvProg: TVProg) {
+        proglist.add(tvProg) // Добавляем переданный объект tvProg в список
+        _proglistFlow.value = proglist // Обновляем StateFlow после добавления программы в конец списка
+        Log.d("ItemViewModel", "Новая программа добавлена в конец списка: $tvProg")
     }
-    fun removeItem(item: TVProg) { //метод для удаления элемента из списка
-        val index = proglist.indexOf(item)
-        proglist.remove(proglist[index])
+
+    fun removeItem(item: TVProg) {
+        proglist.remove(item)
+        _proglistFlow.value = proglist // Обновляем StateFlow после удаления программы из списка
+        Log.d("ItemViewModel", "Программа удалена: $item")
     }
 }
-@Composable
-fun MakeAlertDialog(context: Context, dialogTitle: String, openDialog: MutableState<Boolean>) {
-//создаем переменную, в ней будет сохраняться текст, полученный из строковых ресурсов для выбранного языка
-    var strValue = remember{ mutableStateOf("") } //для получения значения строки из ресурсов
-//получаем id нужной строки из ресурсов через имя в dialogTitle
-    val strId = context.resources.getIdentifier(dialogTitle, "string", context.packageName)
-//секция try..catch нужна для обработки ошибки Resources.NotFoundException – отсутствие искомого ресурса
-    try{ //если такой ресурс есть (т.е. его id не равен 0), то берем само значение этого ресурса
-        if (strId != 0) strValue.value = context.getString(strId)
-    } catch (e: Resources.NotFoundException) {
-        //если произошла ошибка Resources.NotFoundException, то ничего не делаем
-    }
-    AlertDialog( // создаем AlertDialog
-        onDismissRequest = { openDialog.value = false },//действия при закрытии окна
-        title = { Text(text = dialogTitle) }, //заголовок окна
-        text = { Text(text = strValue.value, fontSize = 20.sp) },//содержимое окна
-        confirmButton = { //кнопка Ok, которая будет закрывать окно
-            Button(onClick = { openDialog.value = false })
-            { Text(text = "OK") }
-        }
-    )
-}
+
