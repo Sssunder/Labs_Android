@@ -1,0 +1,32 @@
+R_DEF: Internal format may change without notice
+local
+color black
+color purple_200
+color purple_500
+color purple_700
+color teal_200
+color teal_700
+color white
+drawable cooking_show
+drawable default_image
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable morning_show
+drawable movie_night
+drawable news
+drawable no_picture
+drawable picture
+drawable sports_review
+layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+string cooking_show
+string morning_show
+string movie_night
+string news
+string sports_review
+style DefaultTextStyle
+style Theme.LAB2_2
+xml backup_rules
+xml data_extraction_rules
