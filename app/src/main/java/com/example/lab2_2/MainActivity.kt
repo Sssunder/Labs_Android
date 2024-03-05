@@ -18,16 +18,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,9 +67,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainActivityContent(viewModel: ItemViewModel) {
-    val lazyListState = rememberLazyListState() // Create a LazyListState
-
+    val lazyListState = rememberLazyListState()
+    var previousItemCount by remember { mutableIntStateOf(0) }
     val progList by viewModel.proglistFlow.collectAsState(initial = emptyList())
+
+    // Добавим лог для проверки вызова Composable функции
+    Log.d("MainActivityContent", "MainActivityContent вызван")
+
+    // Добавим лог перед использованием collectAsState
+    Log.d("MainActivityContent", "Прогрессивный список: $progList")
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -82,48 +89,29 @@ fun MainActivityContent(viewModel: ItemViewModel) {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
-                state = lazyListState // Use the lazyListState for the LazyColumn
+                state = lazyListState
             ) {
-                items(
+                itemsIndexed(
                     items = progList,
-                    key = { prog -> prog.name },
-                    itemContent = { prog ->
+                    key = { _, prog -> prog.name },
+                    itemContent = { _, prog ->
                         ListRow(prog, onItemClick = { item ->
                             viewModel.addProgToEnd(item)
                         })
                     }
                 )
+
+                val newItemCount = progList.size
+
+                if (newItemCount > previousItemCount) {
+                    Log.d("LazyColumn", "Новый элемент добавлен в LazyColumn")
+                    previousItemCount = newItemCount
+                }
             }
+
         }
     }
 }
-
-
-@Composable
-fun SetContent(progList: List<TVProg>, viewModel: ItemViewModel, lazyListState: LazyListState) {
-    val updatedProgList = remember { mutableStateListOf<TVProg>() }
-
-    // Копируем список программ из ViewModel в локальный обновляемый список
-    updatedProgList.addAll(progList)
-
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxSize(),
-        state = lazyListState
-    ) {
-        items(
-            items = updatedProgList,
-            key = { prog -> prog.name },
-            itemContent = { prog ->
-                ListRow(prog, onItemClick = { item ->
-                    viewModel.addProgToEnd(item) // Добавление программы через viewModel
-                    updatedProgList.add(item) // Добавляем новую программу в локальный список
-                })
-            }
-        )
-    }
-}
-
 
 
 
@@ -171,18 +159,18 @@ fun ListRow(item: TVProg, onItemClick: (TVProg) -> Unit) {
     }
 }
 
+private var proglist = mutableStateListOf(
+    TVProg("Утреннее шоу", "08:00", "Первый канал", "Иван Иванов", R.drawable.morning_show),
+    TVProg("Новости", "12:00", "Россия 1", "Анна Петрова", R.drawable.news),
+    TVProg("Спортивный обзор", "15:00", "Спорт", "Алексей Смирнов", R.drawable.sports_review),
+    TVProg("Кулинарное шоу", "18:00", "Домашний", "Мария Куликова", R.drawable.cooking_show),
+    TVProg("Кино вечера", "20:00", "ТNT", "Петр Сидоров", R.drawable.movie_night)
+)
 
 class ItemViewModel : ViewModel() {
-    private var proglist = mutableStateListOf(
-        TVProg("Утреннее шоу", "08:00", "Первый канал", "Иван Иванов", R.drawable.morning_show),
-        TVProg("Новости", "12:00", "Россия 1", "Анна Петрова", R.drawable.news),
-        TVProg("Спортивный обзор", "15:00", "Спорт", "Алексей Смирнов", R.drawable.sports_review),
-        TVProg("Кулинарное шоу", "18:00", "Домашний", "Мария Куликова", R.drawable.cooking_show),
-        TVProg("Кино вечера", "20:00", "ТNT", "Петр Сидоров", R.drawable.movie_night)
-    )
 
     //добавляем объект, который будет отвечать за изменения в созданном списке
-    val _proglistFlow = MutableStateFlow(proglist)
+    private val _proglistFlow = MutableStateFlow(proglist)
     //и геттер для него, который его возвращает
     val proglistFlow: StateFlow<List<TVProg>> get() = _proglistFlow
     fun clearList(){ //метод для очистки списка, понадобится в лаб.раб.№5
@@ -191,16 +179,17 @@ class ItemViewModel : ViewModel() {
         Log.d("ItemViewModel", "Список программ очищен")
     }
 
-    fun addProgToHead(TVProg: TVProg) {
-        proglist.add(0, TVProg)
+    fun addProgToHead(item: TVProg) {
+        proglist.add(0, item)
         _proglistFlow.value = proglist // Обновляем StateFlow после добавления программы в начало списка
-        Log.d("ItemViewModel", "Новая программа добавлена в начало списка: $TVProg")
+        Log.d("ItemViewModel", "Новая программа добавлена в начало списка: $item")
     }
 
-    fun addProgToEnd(tvProg: TVProg) {
-        proglist.add(tvProg) // Добавляем переданный объект tvProg в список
+    fun addProgToEnd(item: TVProg) {
+        Log.d("ItemViewModel", "Добавление новой программы: $item")
+        proglist.add(item) // Добавляем переданный объект tvProg в список
         _proglistFlow.value = proglist // Обновляем StateFlow после добавления программы в конец списка
-        Log.d("ItemViewModel", "Новая программа добавлена в конец списка: $tvProg")
+        Log.d("ItemViewModel", "Список программ после добавления: $proglist")
     }
 
     fun removeItem(item: TVProg) {

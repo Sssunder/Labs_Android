@@ -51,44 +51,72 @@ fun InputContent(colorScheme: ColorScheme, onProgramAdded: (TVProg) -> Unit) {
         var hostName by remember { mutableStateOf("") }
 
         Column {
-            TextField(
-                value = programName,
-                onValueChange = { programName = it },
-                label = { Text("Название программы") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = showTime,
-                onValueChange = { showTime = it },
-                label = { Text("Время показа") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = channelName,
-                onValueChange = { channelName = it },
-                label = { Text("Название канала") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = hostName,
-                onValueChange = { hostName = it },
-                label = { Text("ФИО ведущего") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button(
-                onClick = {
+            MakeInputPart(
+                programName = programName,
+                onProgramNameChange = { programName = it },
+                showTime = showTime,
+                onShowTimeChange = { showTime = it },
+                channelName = channelName,
+                onChannelNameChange = { channelName = it },
+                hostName = hostName,
+                onHostNameChange = { hostName = it },
+                onProgramAdded = {
                     // Создание нового объекта программы
                     val newProgram = TVProg(programName, showTime, channelName, hostName)
                     // Вызов колбэка для добавления программы
                     onProgramAdded(newProgram)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Добавить")
-            }
+                }
+            )
         }
     }
 }
+
+@Composable
+fun MakeInputPart(
+    programName: String,
+    onProgramNameChange: (String) -> Unit,
+    showTime: String,
+    onShowTimeChange: (String) -> Unit,
+    channelName: String,
+    onChannelNameChange: (String) -> Unit,
+    hostName: String,
+    onHostNameChange: (String) -> Unit,
+    onProgramAdded: () -> Unit
+) {
+    Column {
+        TextField(
+            value = programName,
+            onValueChange = onProgramNameChange,
+            label = { Text("Название программы") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = showTime,
+            onValueChange = onShowTimeChange,
+            label = { Text("Время показа") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = channelName,
+            onValueChange = onChannelNameChange,
+            label = { Text("Название канала") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = hostName,
+            onValueChange = onHostNameChange,
+            label = { Text("ФИО ведущего") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Button(
+            onClick = onProgramAdded,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Добавить")
+        }
+    }
+}
+
 
 
 // Вспомогательная функция для закрытия активити после добавления программы
