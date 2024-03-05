@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 class InputActivity : ComponentActivity() {
     private val viewModel by viewModels<ItemViewModel>()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

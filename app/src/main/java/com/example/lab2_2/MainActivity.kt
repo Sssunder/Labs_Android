@@ -56,9 +56,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.addProgToEnd(
-            TVProg("кино", "20:00", "ТНТ", "Петр Сидоров", R.drawable.movie_night)
-        )
         setContent {
             MainActivityContent(viewModel)
         }
