@@ -104,7 +104,6 @@ class InputActivity : ComponentActivity() {
             )
             Button(
                 onClick = {
-//                        println("added $tvShow $showTime $tvChannel $fio")
                     val newShow = TV(tvShow, showTime, tvChannel, fio)
                     val intent = Intent()
                     intent.putExtra("newItem", newShow)

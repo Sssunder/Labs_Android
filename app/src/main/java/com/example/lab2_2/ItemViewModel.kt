@@ -22,9 +22,11 @@ class ItemViewModel : ViewModel() {
     }
     fun addTVToHead(tv: TV) {
         TVList.add(0, tv)
+        _TVListFlow.value = TVList
     }
     fun addTVToEnd(tv: TV) {
         TVList.add(tv)
+        _TVListFlow.value = TVList
     }
     fun isContains(tv: TV): Boolean {
         return TVList.contains(tv)
